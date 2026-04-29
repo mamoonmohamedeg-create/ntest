@@ -317,11 +317,56 @@ function showResultRow(row){
     return; 
   }
 
-  let html='<table><tr>';
-  headers.forEach(h=> html+=`<th>${h}</th>`);
-  html+='</tr><tr>';
-  headers.forEach((h,i)=> html+=`<td>${row[i]}</td>`);
-  html+='</tr></table>';
+function showResultRow(row){
+  if(!row){ 
+    resultEl.innerHTML='<div class="error">لم يتم العثور على الطالب</div>'; 
+    return; 
+  }
+
+  // بيانات أساسية
+  const basicFields = ['اسم الطالب','الرقم القومى','الصف الدراسى','الفصل','الامتحان'];
+
+  let basicTable = '<table class="basic-info-table"><tbody>';
+  
+  basicFields.forEach(h=>{
+    if(indexByHeader[h] !== undefined){
+      const value = row[indexByHeader[h]] || '';
+      basicTable += `
+        <tr>
+          <th>${h}</th>
+          <td>${value}</td>
+        </tr>`;
+    }
+  });
+
+  basicTable += '</tbody></table>';
+
+  // جدول الدرجات
+  let gradesTable = `
+    <table>
+      <thead>
+        <tr>
+          <th>المادة</th>
+          <th>درجة الطالب</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  headers.forEach(h=>{
+    if(!basicFields.includes(h)){
+      const grade = row[indexByHeader[h]] || '';
+      gradesTable += `
+        <tr>
+          <td>${h}</td>
+          <td class="grade">${grade}</td>
+        </tr>`;
+    }
+  });
+
+  gradesTable += '</tbody></table>';
+
+  resultEl.innerHTML = basicTable + gradesTable;
+}
 
   resultEl.innerHTML=html;
 }
