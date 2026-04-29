@@ -1,19 +1,17 @@
-
-
-
 <!doctype html>
 <html lang="ar">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>نتيجة مدرسة الرحاب الخاصة</title>
+
 <style>
 body {
   font-family: "Segoe UI", Tahoma, Arial, sans-serif;
   direction: rtl;
   margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, #cce0f0, #f5f7fb);
+  background: linear-gradient(135deg, #e8f5e9, #ffffff);
 }
 
 .container {
@@ -33,7 +31,7 @@ body {
 .page-title {
   text-align: center;
   font-size: 28px;
-  color: #13245C;
+  color: #2E7D32;
   margin-bottom: 30px;
   font-weight: 700;
 }
@@ -42,7 +40,7 @@ body {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  border: 3px solid #13245C;
+  border: 3px solid #2E7D32;
   position: absolute;
   top: -40px;
   left: 30px;
@@ -89,13 +87,13 @@ input[type="text"] {
   padding: 12px;
   font-size: 16px;
   border-radius: 12px;
-  border: 1px solid #b0c7d8;
+  border: 1px solid #a5d6a7;
 }
 
 input[type="text"]:focus {
   outline: none;
-  border-color: #0b79a6;
-  box-shadow: 0 0 10px rgba(11,121,166,0.25);
+  border-color: #2E7D32;
+  box-shadow: 0 0 10px rgba(46,125,50,0.25);
 }
 
 button {
@@ -104,7 +102,7 @@ button {
   font-size: 16px;
   border-radius: 12px;
   border: none;
-  background: #13245C;
+  background: #2E7D32;
   color: white;
   font-weight: 600;
   cursor: pointer;
@@ -112,7 +110,7 @@ button {
 }
 
 button:hover {
-  background: #095b7c;
+  background: #1B5E20;
   transform: translateY(-2px);
 }
 
@@ -135,18 +133,18 @@ th, td {
 }
 
 th {
-  background: #13245C;
+  background: #2E7D32;
   color: white;
   font-weight: 700;
   font-size: 20px;
 }
 
 tbody tr:nth-child(even) {
-  background: #f0f9fc;
+  background: #e8f5e9;
 }
 
 tbody tr:hover {
-  background: #d6edf8;
+  background: #c8e6c9;
   transition: background 0.2s;
 }
 
@@ -167,6 +165,7 @@ td.grade {
   .basic-info-table th {
     display: none;
   }
+
  .input-row {
     flex-direction: column;
     width: 100%;
@@ -191,19 +190,18 @@ td.grade {
     width: 100% !important;
   }
 
-.basic-info-table,
+  .basic-info-table,
   .basic-info-table tbody,
   .basic-info-table tr,
   .basic-info-table td {
     display: block;
- 
   }
 
   .basic-info-table td {
     position: relative;
     padding: 14px 120px 14px 12px; 
     margin-bottom: 10px;
-    background: #d6edf8;
+    background: #c8e6c9;
     font-size: 15px;
     font-weight: 600;
     border-radius: 6px;
@@ -219,7 +217,7 @@ td.grade {
     top: 0;
     height: 100%;
     width: 110px;
-    background:#13245C ;
+    background:#2E7D32 ;
     color: #fff;
     display: flex;
     align-items: center;
@@ -229,13 +227,15 @@ td.grade {
     border-left: 1px solid #e6eef5;
   }
 }
-
 </style>
 </head>
+
 <body>
+
 <div class="container">
   <div class="card">
     <h1 class="page-title">نتيجة طلاب مدرسة الرحاب الخاصة</h1>
+
     <div class="logo-container">
       <img src="./img/logo.jpeg" alt="لوغو مدرسة الرحاب">
     </div>
@@ -248,11 +248,13 @@ td.grade {
       <button id="searchBtn">عرض النتيجة</button>
     </div>
 
-    <div id="result" class="result" aria-live="polite"></div>
+    <div id="result" class="result"></div>
   </div>
 </div>
+
 <script>
 const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpYZxVgAbPTC5n5-q6vDBo2wjiiOS19lIBLCONBln6I0WjjZ2dNapcZuz6qU0uew/pub?gid=131853627&single=true&output=csv';
+
 const resultEl = document.getElementById('result');
 const searchBtn = document.getElementById('searchBtn');
 const nidInput = document.getElementById('nid');
@@ -288,91 +290,51 @@ function parseCSV(text){
 async function loadSheet(){
   try{
     const resp=await fetch(SHEET_CSV);
-    if(!resp.ok) throw new Error('فشل في جلب الشيت');
     const text=await resp.text();
     const parsed=parseCSV(text);
-    if(parsed.length<1) throw new Error('الشيت فارغ أو لم يتم التعرف عليه');
 
-    headers=parsed[0].map(h=>h.replace(/\u200E|\u200F/g,'').trim());
+    headers=parsed[0];
     rows=parsed.slice(1);
 
     indexByHeader={};
     headers.forEach((h,i)=>indexByHeader[h]=i);
 
-    const nidColumnName='الرقم القومى';
-    const nidIndex=indexByHeader[nidColumnName]!==undefined?indexByHeader[nidColumnName]:0;
+    const nidIndex=indexByHeader['الرقم القومى'];
 
     lookupByNid={};
     rows.forEach(r=>{ 
-      const nid=(r[nidIndex]||'').replace(/\s+/g,'').trim(); 
-      if(nid) lookupByNid[nid]=r; 
+      const nid=(r[nidIndex]||'').trim(); 
+      lookupByNid[nid]=r; 
     });
   }catch(err){ 
-    console.error(err); 
-    resultEl.innerHTML=`<div class="error">خطأ: ${err.message}</div>`; 
+    resultEl.innerHTML=`<div class="error">حدث خطأ</div>`; 
   }
 }
 
 function showResultRow(row){
   if(!row){ 
-    resultEl.innerHTML='<div class="error">لم يتم العثور على الطالب بالرقم المدخل.</div>'; 
+    resultEl.innerHTML='<div class="error">لم يتم العثور على الطالب</div>'; 
     return; 
   }
 
-  const basicFields = ['اسم الطالب', 'الرقم القومى','الصف الدراسى', 'الفصل','الامتحان' ];
-  let basicTable = '<table class="basic-info-table"><tbody><tr>';
-  basicFields.forEach(h=>{
-    if(indexByHeader[h] !== undefined){
-      basicTable += `<th>${h}</th>`;
-    }
-  });
-  basicTable += '</tr><tr>';
- basicFields.forEach(h=>{
-  if(indexByHeader[h] !== undefined){
-    const value = row[indexByHeader[h]] || '';
-    basicTable += `<td data-label="${h}">${value}</td>`;
-  }
-});
+  let html='<table><tr>';
+  headers.forEach(h=> html+=`<th>${h}</th>`);
+  html+='</tr><tr>';
+  headers.forEach((h,i)=> html+=`<td>${row[i]}</td>`);
+  html+='</tr></table>';
 
-  basicTable += '</tr></tbody></table>';
-
-  let tableHtml = '<table><thead><tr><th>المادة</th><th>درجة الطالب</th></tr></thead><tbody>';
-  headers.forEach(h=>{
-    if(!basicFields.includes(h)){
-      const grade = row[indexByHeader[h]] || '';
-      tableHtml += `<tr>
-                      <td>${h}</td>
-                      <td class="grade">${grade}</td>
-                    </tr>`;
-    }
-  });
-  tableHtml += '</tbody></table>';
-
-  resultEl.innerHTML = basicTable + tableHtml;
+  resultEl.innerHTML=html;
 }
 
-searchBtn.addEventListener('click', async () => {
-  const nid = (nidInput.value || '').replace(/\s+/g,'').trim();
-  if(!nid){ 
-    resultEl.innerHTML = '<div class="error">من فضلك ادخل الرقم القومي.</div>'; 
-    return; 
-  }
+searchBtn.onclick=async ()=>{
+  const nid=nidInput.value.trim();
+  if(!nid) return alert('ادخل الرقم القومي');
   await loadSheet();
-  const row = lookupByNid[nid];
-  showResultRow(row);
-});
-
-
-nidInput.addEventListener('keydown',(e)=>{ 
-  if(e.key==='Enter') searchBtn.click(); 
-});
-
-function convertArabicNumbersToEnglish(str) {
-  const arabicNums = '٠١٢٣٤٥٦٧٨٩';
-  return str.replace(/[٠-٩]/g, d => arabicNums.indexOf(d));
-}
+  showResultRow(lookupByNid[nid]);
+};
 
 loadSheet();
 </script>
+
 </body>
 </html>
