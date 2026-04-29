@@ -116,7 +116,6 @@ button:hover {
 
 .result {
   margin-top: 25px;
-  overflow-x: auto;
 }
 
 table {
@@ -127,7 +126,7 @@ table {
 }
 
 th, td {
-  padding: 12px 16px;
+  padding: 12px;
   border: 1px solid #e6eef5;
   text-align: center;
 }
@@ -136,7 +135,6 @@ th {
   background: #2E7D32;
   color: white;
   font-weight: 700;
-  font-size: 20px;
 }
 
 tbody tr:nth-child(even) {
@@ -145,87 +143,32 @@ tbody tr:nth-child(even) {
 
 tbody tr:hover {
   background: #c8e6c9;
-  transition: background 0.2s;
 }
 
 td.grade {
-  font-weight: 700;
-  font-size: 20px;
+  font-weight: bold;
 }
 
 .error {
-  color: #b00020;
-  font-weight: 700;
+  color: red;
   text-align: center;
-  margin-top: 12px;
+  margin-top: 15px;
 }
 
+/* موبايل */
 @media(max-width:580px){
 
-  .basic-info-table th {
-    display: none;
-  }
-
- .input-row {
+  .input-row {
     flex-direction: column;
-    width: 100%;
-    align-items: center;
   }
 
   label.small,
-  input[type="text"],
+  input,
   button {
     width: 100% !important;
-    max-width: 100% !important;
     margin-right: 0 !important;
-    text-align: center;
   }
 
-  label.small {
-    margin-right: 0 !important; 
-    font-size: 16px;
-  }
-
-  input[type="text"] {
-    width: 100% !important;
-  }
-
-  .basic-info-table,
-  .basic-info-table tbody,
-  .basic-info-table tr,
-  .basic-info-table td {
-    display: block;
-  }
-
-  .basic-info-table td {
-    position: relative;
-    padding: 14px 120px 14px 12px; 
-    margin-bottom: 10px;
-    background: #c8e6c9;
-    font-size: 15px;
-    font-weight: 600;
-    border-radius: 6px;
-    border: 1px solid #e6eef5;
-    text-align: center;
-    direction: rtl;    
-  }
-
-  .basic-info-table td::before {
-    content: attr(data-label);
-    position: absolute;
-    right: 0;              
-    top: 0;
-    height: 100%;
-    width: 110px;
-    background:#2E7D32 ;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    border-radius: 6px 0 0 6px;
-    border-left: 1px solid #e6eef5;
-  }
 }
 </style>
 </head>
@@ -237,13 +180,13 @@ td.grade {
     <h1 class="page-title">نتيجة طلاب مدرسة الرحاب الخاصة</h1>
 
     <div class="logo-container">
-      <img src="./img/logo.jpeg" alt="لوغو مدرسة الرحاب">
+      <img src="./img/logo.jpeg">
     </div>
 
     <div class="controls">
       <div class="input-row">
-        <label for="nid" class="small">اكتب الرقم القومي للطالب:</label>
-        <input id="nid" type="text" placeholder=" " inputmode="numeric" />
+        <label class="small">اكتب الرقم القومي:</label>
+        <input id="nid" type="text">
       </div>
       <button id="searchBtn">عرض النتيجة</button>
     </div>
@@ -261,119 +204,74 @@ const nidInput = document.getElementById('nid');
 
 let headers=[], rows=[], indexByHeader={}, lookupByNid={};
 
-function cleanCell(s){ 
-  if(!s && s!==0) return ''; 
-  s=String(s).trim(); 
-  if(s.length>=2 && s[0]==='"' && s[s.length-1]==='"'){ 
-    s=s.slice(1,-1).replace(/""/g,'"'); 
-  } 
-  return s; 
-}
-
-function parseCSV(text){ 
-  const lines=text.split(/\r?\n/).filter(l=>l.trim()!==''); 
-  return lines.map(line=>{ 
-    const result=[]; 
-    let cur='', inQuotes=false; 
-    for(let i=0;i<line.length;i++){ 
-      const ch=line[i]; 
-      if(ch==='\"'&&line[i+1]==='\"'){ cur+='"'; i++; continue;} 
-      if(ch==='\"'){inQuotes=!inQuotes; continue;} 
-      if(ch===','&&!inQuotes){result.push(cur); cur=''; continue;} 
-      cur+=ch; 
-    }
-    result.push(cur); 
-    return result.map(cleanCell); 
-  }); 
+function parseCSV(text){
+  const lines = text.split('\n');
+  return lines.map(l => l.split(','));
 }
 
 async function loadSheet(){
-  try{
-    const resp=await fetch(SHEET_CSV);
-    const text=await resp.text();
-    const parsed=parseCSV(text);
+  const res = await fetch(SHEET_CSV);
+  const text = await res.text();
+  const data = parseCSV(text);
 
-    headers=parsed[0];
-    rows=parsed.slice(1);
+  headers = data[0];
+  rows = data.slice(1);
 
-    indexByHeader={};
-    headers.forEach((h,i)=>indexByHeader[h]=i);
+  headers.forEach((h,i)=> indexByHeader[h]=i);
 
-    const nidIndex=indexByHeader['الرقم القومى'];
+  const nidIndex = indexByHeader['الرقم القومى'];
 
-    lookupByNid={};
-    rows.forEach(r=>{ 
-      const nid=(r[nidIndex]||'').trim(); 
-      lookupByNid[nid]=r; 
-    });
-  }catch(err){ 
-    resultEl.innerHTML=`<div class="error">حدث خطأ</div>`; 
-  }
+  rows.forEach(r=>{
+    lookupByNid[r[nidIndex]] = r;
+  });
 }
 
 function showResultRow(row){
-  if(!row){ 
-    resultEl.innerHTML='<div class="error">لم يتم العثور على الطالب</div>'; 
-    return; 
+  if(!row){
+    resultEl.innerHTML = '<div class="error">لم يتم العثور على الطالب</div>';
+    return;
   }
 
-function showResultRow(row){
-  if(!row){ 
-    resultEl.innerHTML='<div class="error">لم يتم العثور على الطالب</div>'; 
-    return; 
-  }
-
-  // بيانات أساسية
   const basicFields = ['اسم الطالب','الرقم القومى','الصف الدراسى','الفصل','الامتحان'];
 
-  let basicTable = '<table class="basic-info-table"><tbody>';
-  
-  basicFields.forEach(h=>{
-    if(indexByHeader[h] !== undefined){
-      const value = row[indexByHeader[h]] || '';
-      basicTable += `
+  let basic = '<table>';
+  basicFields.forEach(f=>{
+    if(indexByHeader[f] !== undefined){
+      basic += `
         <tr>
-          <th>${h}</th>
-          <td>${value}</td>
+          <th>${f}</th>
+          <td>${row[indexByHeader[f]]}</td>
         </tr>`;
     }
   });
+  basic += '</table>';
 
-  basicTable += '</tbody></table>';
-
-  // جدول الدرجات
-  let gradesTable = `
+  let grades = `
     <table>
-      <thead>
-        <tr>
-          <th>المادة</th>
-          <th>درجة الطالب</th>
-        </tr>
-      </thead>
-      <tbody>`;
+    <tr>
+      <th>المادة</th>
+      <th>الدرجة</th>
+    </tr>`;
 
   headers.forEach(h=>{
     if(!basicFields.includes(h)){
-      const grade = row[indexByHeader[h]] || '';
-      gradesTable += `
+      grades += `
         <tr>
           <td>${h}</td>
-          <td class="grade">${grade}</td>
+          <td class="grade">${row[indexByHeader[h]]}</td>
         </tr>`;
     }
   });
 
-  gradesTable += '</tbody></table>';
+  grades += '</table>';
 
-  resultEl.innerHTML = basicTable + gradesTable;
+  resultEl.innerHTML = basic + grades;
 }
 
-  resultEl.innerHTML=html;
-}
-
-searchBtn.onclick=async ()=>{
-  const nid=nidInput.value.trim();
+searchBtn.onclick = async ()=>{
+  const nid = nidInput.value.trim();
   if(!nid) return alert('ادخل الرقم القومي');
+
   await loadSheet();
   showResultRow(lookupByNid[nid]);
 };
